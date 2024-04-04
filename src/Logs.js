@@ -150,7 +150,7 @@ class Logs {
         acc.blocks.push([current.context + ':'])
         acc.blocks[acc.blocks.length-1].push(logs._withLink(current.synopsis, dv, current))
       }
-      else if (acc.context == current.context) {
+      else {
         acc.blocks[acc.blocks.length-1].push(logs._withLink(current.synopsis, dv, current))
       }
 
