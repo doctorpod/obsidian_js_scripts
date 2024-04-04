@@ -6,34 +6,11 @@ class Logs {
   }
 
   synopsis(dv) {
-    let lastContext = ''
-    let contextPara = []
+    const paragraphs = this._synopsisByContext(dv, this._linked(dv, 'synopsis'))
 
-    for (let page of this._linked(dv, 'synopsis')) {
-      if (page.context) {
-        if (page.context != lastContext) {
-          if (contextPara.length > 0) {
-            dv.paragraph(contextPara.join(' '))
-          }
-
-          contextPara = [page.context + ':']
-        }
-
-        contextPara.push(this._withLink(page.synopsis, dv, page))
-      } else {
-        if (contextPara.length > 0) {
-          dv.paragraph(contextPara.join(' '))
-          contextPara = []
-        }
-
-        dv.paragraph(this._withLink(page.synopsis, dv, page))
-      }
-
-      lastContext = page.context
+    for (let para of paragraphs) {
+      dv.paragraph(para)
     }
-
-    if (contextPara.length > 0)
-      dv.paragraph(contextPara.join(' '))
   }
 
   synopsisByDate(dv) {
@@ -158,6 +135,32 @@ class Logs {
   }
 
   // Helpers
+  _synopsisByContext(dv, pages) {
+    let accum = {
+      context: null,
+      blocks: []
+    }
+
+    const logs = this
+    const callback = function(acc, current) {
+      if (current.context == undefined) {
+        acc.blocks.push([logs._withLink(current.synopsis, dv, current)])
+      }
+      else if (acc.context != current.context) {
+        acc.blocks.push([current.context + ':'])
+        acc.blocks[acc.blocks.length-1].push(logs._withLink(current.synopsis, dv, current))
+      }
+      else if (acc.context == current.context) {
+        acc.blocks[acc.blocks.length-1].push(logs._withLink(current.synopsis, dv, current))
+      }
+
+      acc.context = current.context
+      return acc
+    }
+
+    return pages.reduce(callback, accum).blocks.map(block => block.join(' '))
+  }
+
   _linked(dv, propName) {
     const hits =  dv.pages('[[]] AND !"journal" AND !"templates"')
       .where(p => p.date && p.time)
