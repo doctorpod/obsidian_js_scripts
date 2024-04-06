@@ -5,28 +5,24 @@ describe('Logs', function() {
     logs = new Logs()
   })
 
-  describe('_synopsisByContext', () => {
-    let pages
+  describe('_groupRespectOrder', () => {
+    const page1 = { synopsis: 'Apples', context: 'Fruit', file: {path: 'a/path'} }
+    const page2 = { synopsis: 'Pears',  context: 'Fruit', file: {path: 'a/path'} }
+    const page3 = { synopsis: 'Bears',                    file: {path: 'a/path'} }
+    const page4 = { synopsis: 'Snowshoes',                file: {path: 'a/path'} }
+    const page5 = { synopsis: 'Hammer', context: 'Tools', file: {path: 'a/path'} }
 
-    beforeEach(() => {
-      pages = [
-        { synopsis: 'Apples', context: 'Fruit', file: {path: 'a/path'} },
-        { synopsis: 'Pears',  context: 'Fruit', file: {path: 'a/path'} },
-        { synopsis: 'Bears',                    file: {path: 'a/path'} },
-        { synopsis: 'Snowshoes',                file: {path: 'a/path'} },
-        { synopsis: 'Hammer', context: 'Tools', file: {path: 'a/path'} },
-      ]
-    })
+    const pages = [page1, page2, page3, page4, page5]
 
-    it('groups by context', () => {
+    it('returns array of correct groups', () => {
       const expected = [
-        'Fruit: Apples >>> Pears >>>',
-        'Bears >>>',
-        'Snowshoes >>>',
-        'Tools: Hammer >>>',
+        { key: 'Fruit', rows: [page1, page2] },
+        { key: null,    rows: [page3] },
+        { key: null,    rows: [page4] },
+        { key: 'Tools', rows: [page5] },
       ]
 
-      expect(logs._synopsisByContext(fakeDv, pages)).toEqual(expected)
+      expect(logs._groupRespectOrder(pages, 'context')).toEqual(expected)
     })
   })
 

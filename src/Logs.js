@@ -6,10 +6,20 @@ class Logs {
   }
 
   synopsis(dv) {
-    const paragraphs = this._synopsisByContext(dv, this._linked(dv, 'synopsis'))
+    let para
+    const groups = this._groupRespectOrder(
+      this._linked(dv, 'synopsis'),
+      'context'
+    )
 
-    for (let para of paragraphs) {
-      dv.paragraph(para)
+    for (let group of groups) {
+      para = group.rows
+        .map(p => this._withLink(p.synopsis, dv, p))
+        .join(' ')
+
+      dv.paragraph(
+        group.key ? group.key + ': ' + para : para
+      )
     }
   }
 
@@ -135,30 +145,32 @@ class Logs {
   }
 
   // Helpers
-  _synopsisByContext(dv, pages) {
+
+  // Returns an array of group objects:
+  // [ { key: 'A key', rows: [page1,...] },... ]
+  _groupRespectOrder(pages, groupProp) {
     let accum = {
-      context: null,
-      blocks: []
+      key: null,
+      groups: []
     }
 
     const logs = this
     const callback = function(acc, current) {
-      if (current.context == undefined) {
-        acc.blocks.push([logs._withLink(current.synopsis, dv, current)])
+      if (current[groupProp] == undefined) {
+        acc.groups.push({key: null, rows: [current]})
       }
-      else if (acc.context != current.context) {
-        acc.blocks.push([current.context + ':'])
-        acc.blocks[acc.blocks.length-1].push(logs._withLink(current.synopsis, dv, current))
+      else if (acc.key != current[groupProp]) {
+        acc.groups.push({key: current[groupProp], rows: [current]})
       }
       else {
-        acc.blocks[acc.blocks.length-1].push(logs._withLink(current.synopsis, dv, current))
+        acc.groups[acc.groups.length-1].rows.push(current)
       }
 
-      acc.context = current.context
+      acc.key = current[groupProp]
       return acc
     }
 
-    return pages.reduce(callback, accum).blocks.map(block => block.join(' '))
+    return pages.reduce(callback, accum).groups
   }
 
   _linked(dv, propName) {
