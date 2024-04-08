@@ -1,10 +1,47 @@
 class Logs {
-  synopsisWithTime(dv) {
-    for (let page of this._linked(dv, 'synopsis')) {
-      dv.paragraph(this._withLinkAndTime(page.synopsis, dv, page))
+  // work-notes
+  summary(dv) {
+    const linkedSummaries = dv.pages('[[]] AND #type/summary AND !"templates"')
+
+    for (let group of linkedSummaries.groupBy(p => p.Context)) {
+      dv.header(3, group.key)
+      dv.list(group.rows.sort(k => k.time, 'asc').map(k => this._withLink(k.synopsis, dv, k)))
     }
   }
 
+  // List of logs with time grouped by date
+  history(dv) {
+    for (let group of this._linked(dv).groupBy(p => p.date)) {
+      if (group.key.path != dv.current().file.path) {
+        dv.header(3, dv.date(group.key).toFormat('yyyy-MM-dd, ccc'));
+      }
+
+      dv.list(group.rows.sort(k => k.time, 'asc').map(k => this._withLinkAndTime(k.synopsis, dv,k)))
+    }
+  }
+
+  collectOutlinks(dv) {
+    const links = this._linked(dv)
+                      .flatMap(p => p.file.outlinks)
+                      .distinct()
+                      .where(l => l.path != dv.current().file.path)
+                      // Ignore journal links coz this view often used with history
+                      // which already has them as group headings
+                      .where(l => !l.path.match(/journal/))
+                      // Ignore links already hard outlinked in this file
+                      .where(l => !dv.current().file.outlinks.map(l => l.path).includes(l.path))
+                      .sort(l => l.display)
+
+    dv.list(links)
+  }
+
+  // List of logs with time
+  synopsisWithTime(dv) {
+    dv.list(this._linked(dv, 'synopsis').map(page => this._withLinkAndTime(page.synopsis, dv, page)))
+  }
+  // end work-notes
+
+  // Paragraphs of logs grouped by context if present
   synopsisGroupContext(dv) {
     let para
     const groups = this._groupRespectOrder(
@@ -23,10 +60,11 @@ class Logs {
     }
   }
 
+  // Like history but preceed with context if present instead of time
   synopsisByDate(dv) {
     const thisClass = this
 
-    for (let group of this._linked(dv, 'synopsis').groupBy(p => p.date)) {
+    for (let group of this._linked(dv, 'synopsis').groupBy(p => dv.date(p.date))) { // Use dv.date in case date is a link
       dv.header(3, group.key.toFormat('yyyy-MM-dd, ccc'))
 
       dv.list(
