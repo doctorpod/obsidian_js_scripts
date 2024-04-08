@@ -12,7 +12,9 @@ describe('Logs', function() {
     const page4 = { synopsis: 'Snowshoes',                file: {path: 'a/path'} }
     const page5 = { synopsis: 'Hammer', context: 'Tools', file: {path: 'a/path'} }
 
-    const pages = [page1, page2, page3, page4, page5]
+    const fakePages = {
+      values: [page1, page2, page3, page4, page5]
+    }
 
     it('returns array of correct groups', () => {
       const expected = [
@@ -22,7 +24,7 @@ describe('Logs', function() {
         { key: 'Tools', rows: [page5] },
       ]
 
-      expect(logs._groupRespectOrder(pages, 'context')).toEqual(expected)
+      expect(logs._groupRespectOrder(fakePages, 'context')).toEqual(expected)
     })
   })
 
@@ -35,21 +37,6 @@ describe('Logs', function() {
   describe('_withLinkAndTime', () => {
     it('returns text with link and time', () => {
       expect(logs._withLinkAndTime('foo', fakeDv, fakePage)).toEqual('12:00: foo >>>')
-    })
-  })
-
-  describe('synopsisWithTime', () => {
-    it('should filter logs', () => {
-      // spyOn(logs, '_linked').and.returnValue([1])
-      expect(logs._linked(fakeDv)).toBe(fakePages)
-      expect(logs._linked(fakeDv, 'synopsis')).toBe(fakePages)
-    })
-
-    it('should list synopsis', () => {
-      spyOn(fakeDv, 'paragraph') //.and.callThrough()
-      logs.synopsisWithTime(fakeDv)
-
-      expect(fakeDv.paragraph).toHaveBeenCalled()
     })
   })
 })

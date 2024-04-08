@@ -1,6 +1,7 @@
 class Logs {
   // work-notes
   summary(dv) {
+    // FIXME: Get rid of reliance on #type/summary and use this._linked()
     const linkedSummaries = dv.pages('[[]] AND #type/summary AND !"templates"')
 
     for (let group of linkedSummaries.groupBy(p => p.Context)) {
@@ -41,8 +42,10 @@ class Logs {
   }
   // end work-notes
 
+  // personal
+  // Used by dailies
   // Paragraphs of logs grouped by context if present
-  synopsisGroupContext(dv) {
+  synopsis(dv) {
     let para
     const groups = this._groupRespectOrder(
       this._linked(dv, 'synopsis'),
@@ -60,7 +63,8 @@ class Logs {
     }
   }
 
-  // Like history but preceed with context if present instead of time
+  // Like history but preceed with context (if present) instead of time
+  // Used as history in non-log files
   synopsisByDate(dv) {
     const thisClass = this
 
@@ -85,6 +89,7 @@ class Logs {
     }
   }
 
+  // Used in annuals
   headlineByMonth(dv) {
     for (let month of this._linked(dv, 'headline').groupBy(p => p.date.toFormat('MM-MMMM'))) {
       dv.header(2, month.key.slice(3))
@@ -95,6 +100,7 @@ class Logs {
     }
   }
 
+  // Used in summaries
   headlineByYear(dv) {
     for (let year of this._linked(dv, 'headline').groupBy(p => p.date.toFormat('yyyy'))) {
       dv.header(3, year.key)
@@ -126,6 +132,7 @@ class Logs {
     }
   }
 
+  // Used in gratitude.md
   // propName must be an array
   gather(dv, propName) {
     const hits = this._linked(dv, propName)
@@ -137,11 +144,14 @@ class Logs {
     dv.list(vals)
   }
 
+  // Use to get images in dailies
+  // Similar to gather?
   getAll(dv, propName) {
     const hits = this._linked(dv, propName)
     return hits.flatMap(page => page[propName])
   }
 
+  // Used in cultivations
   // Notes must have branch and optionally parent_branch properties
   graph(dv, debug = false) {
     const nodes = this._linked(dv, 'branch')
@@ -181,8 +191,9 @@ class Logs {
     const mermaidBlock = '```mermaid' + `\n${header} ${commands.map(c => c[0]).join("\n")}` + "\n```\n"
     dv.paragraph(mermaidBlock)
   }
+  // end personal
 
-  // Helpers
+  // Helpers ==================================
 
   // Returns an array of group objects:
   // [ { key: 'A key', rows: [page1,...] },... ]
@@ -208,7 +219,7 @@ class Logs {
       return acc
     }
 
-    return pages.reduce(callback, accum).groups
+    return pages.values.reduce(callback, accum).groups
   }
 
   _linked(dv, propName) {
@@ -230,12 +241,8 @@ class Logs {
     return page.time + ': ' + this._withLink(text, dv, page)
   }
 
-
-  _titleCase(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
   // Only works for possible links
+  // Only used by graph() so far
   _mustString(linkOrString) {
     let path
 
