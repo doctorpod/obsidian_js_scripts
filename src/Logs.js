@@ -1,11 +1,11 @@
 class Logs {
-  synopsisIgnoreContext(dv) {
+  synopsisWithTime(dv) {
     for (let page of this._linked(dv, 'synopsis')) {
-      dv.paragraph(this._withLink(page.synopsis, dv, page))
+      dv.paragraph(this._withLinkAndTime(page.synopsis, dv, page))
     }
   }
 
-  synopsis(dv) {
+  synopsisGroupContext(dv) {
     let para
     const groups = this._groupRespectOrder(
       this._linked(dv, 'synopsis'),
@@ -187,6 +187,11 @@ class Logs {
   _withLink(text, dv, page) {
     return text + ' ' + dv.fileLink(page.file.path, false, '➦')
   }
+
+  _withLinkAndTime(text, dv, page) {
+    return page.time + ': ' + this._withLink(text, dv, page)
+  }
+
 
   _titleCase(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);

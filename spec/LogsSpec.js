@@ -26,7 +26,19 @@ describe('Logs', function() {
     })
   })
 
-  describe('synopsisIgnoreContext', () => {
+  describe('_withLink', () => {
+    it('returns text with link', () => {
+      expect(logs._withLink('foo', fakeDv, fakePage)).toEqual('foo >>>')
+    })
+  })
+
+  describe('_withLinkAndTime', () => {
+    it('returns text with link and time', () => {
+      expect(logs._withLinkAndTime('foo', fakeDv, fakePage)).toEqual('12:00: foo >>>')
+    })
+  })
+
+  describe('synopsisWithTime', () => {
     it('should filter logs', () => {
       // spyOn(logs, '_linked').and.returnValue([1])
       expect(logs._linked(fakeDv)).toBe(fakePages)
@@ -35,7 +47,7 @@ describe('Logs', function() {
 
     it('should list synopsis', () => {
       spyOn(fakeDv, 'paragraph') //.and.callThrough()
-      logs.synopsisIgnoreContext(fakeDv)
+      logs.synopsisWithTime(fakeDv)
 
       expect(fakeDv.paragraph).toHaveBeenCalled()
     })
