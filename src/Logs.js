@@ -1,7 +1,19 @@
 class Logs {
   // work-notes
+
+  // Headline grouped under context
+  // Replaces summary() from 2024-04-09
+  headlines(dv) {
+    for (let group of this._linked(dv, 'headline').groupBy(p => p.Context)) {
+      dv.header(3, group.key)
+      dv.list(group.rows.sort(k => k.time, 'asc').map(k => this._withLink(k.headline, dv, k)))
+    }
+  }
+
+  // Synopsis grouped under context where type is summary
+  // Superceded by headlines() from 2024-04-09
+  // Kept for backward compatibility so headlineless logs will appear
   summary(dv) {
-    // FIXME: Get rid of reliance on #type/summary and use this._linked()
     const linkedSummaries = dv.pages('[[]] AND #type/summary AND !"templates"')
 
     for (let group of linkedSummaries.groupBy(p => p.Context)) {
@@ -223,8 +235,7 @@ class Logs {
   }
 
   _linked(dv, propName) {
-    const hits =  dv.pages('[[]] AND !"journal" AND !"templates"')
-      .where(p => p.date && p.time)
+    const hits =  dv.pages('[[]] AND !"journal" AND !"templates"').where(p => p.date && p.time)
 
     if (propName == undefined) {
       return hits.sort(p => [p.date, p.time])
