@@ -1,14 +1,14 @@
 class DateNav {
   nav(dv) {
-    let links = dv.pages('"journal"')
-                  .filter(p => p.file.name.match(/\d\d\d\d-\d\d-\d\d/))
-                  .sort(p => p.file.name)
-                  .map(p => p.file.link)
+    const links = dv.pages('"journal"')
+      .filter(p => p.file.name.match(/\d\d\d\d-\d\d-\d\d/))
+      .sort(p => p.file.name)
+      .map(p => p.file.link)
 
-    let iThis = links.indexOf(dv.current().file.link)
-    let offsets = [1, 5, 20, 250]
+    const iThis = links.indexOf(dv.current().file.link)
+    const offsets = [1, 5, 20, 250]
 
-    let prevs = offsets.map(function(o) {
+    const prevs = offsets.map(o => {
       let index = iThis - o
       let display = '⪻' + o
       let link = null
@@ -21,7 +21,7 @@ class DateNav {
       return link
     }).toReversed()
 
-    let nexts = offsets.map(function(o) {
+    const nexts = offsets.map(o => {
       let index = iThis + o
       let display = o + '︎⪼︎︎'
       let link = null
@@ -34,7 +34,7 @@ class DateNav {
       return link
     })
 
-    dv.paragraph(prevs.join(' ') + ' | ' + nexts.join(' '))
+    dv.paragraph(prevs.join(' ') + ' ⎜ ' + nexts.join(' '))
   }
 
   nextGTD(dv) {

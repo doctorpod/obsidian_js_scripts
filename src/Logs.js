@@ -164,7 +164,7 @@ class Logs {
   }
 
   // Used in cultivations
-  // Notes must have branch and optionally parent_branch properties
+  // Notes must have branch and optionally parent-branch properties
   graph(dv, debug = false) {
     const nodes = this._linked(dv, 'branch')
 
@@ -182,7 +182,7 @@ class Logs {
     for (let n of nodes) {
       label = n.date.toFormat('MMM yyyy') + ' - ' + n.headline
       currBranch = this._mustString(n.branch)
-      parentBranch = this._mustString(n.parent_branch)
+      parentBranch = this._mustString(n['parent-branch'])
 
       if (parentBranch) {
         if (prevBranch != parentBranch) commands.push(['checkout "' + parentBranch + '"', n])
