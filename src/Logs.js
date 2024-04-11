@@ -24,12 +24,18 @@ class Logs {
 
   // List of logs with time grouped by date
   history(dv) {
-    for (let group of this._linked(dv).groupBy(p => p.date)) {
-      if (group.key.path != dv.current().file.path) {
-        dv.header(3, dv.date(group.key).toFormat('yyyy-MM-dd, ccc'));
-      }
+    const grouped = this._linked(dv).groupBy(p => p.date)
 
-      dv.list(group.rows.sort(k => k.time, 'asc').map(k => this._withLinkAndTime(k.synopsis, dv,k)))
+    if (grouped.length == 0) {
+      dv.paragraph('No logs')
+    } else {
+      for (let group of grouped) {
+        if (group.key.path != dv.current().file.path) {
+          dv.header(3, dv.date(group.key).toFormat('yyyy-MM-dd, ccc'));
+        }
+
+        dv.list(group.rows.sort(k => k.time, 'asc').map(k => this._withLinkAndTime(k.synopsis, dv,k)))
+      }
     }
   }
 
@@ -45,10 +51,28 @@ class Logs {
                       .where(l => !dv.current().file.outlinks.map(l => l.path).includes(l.path))
                       .sort(l => l.display)
 
-    dv.list(links)
+    if (links.length == 0) {
+      dv.paragraph('No mentions in logs')
+    } else {
+      dv.list(links)
+    }
+  }
+
+  inboundMentions(dv) {
+    const inLinks = dv.pages('[[]] AND !"journal" AND !"templates"')
+      .where(p => !p.date && !p.time)
+      .sort(p => p.file.name)
+      .map(p => p.file.link)
+
+    if (inLinks.length == 0) {
+      dv.paragraph('No inbound mentions')
+    } else {
+      dv.list(inLinks)
+    }
   }
 
   // List of logs with time
+  // Used by dailies
   synopsisWithTime(dv) {
     dv.list(this._linked(dv, 'synopsis').map(page => this._withLinkAndTime(page.synopsis, dv, page)))
   }
@@ -80,24 +104,31 @@ class Logs {
   synopsisByDate(dv) {
     const thisClass = this
 
-    for (let group of this._linked(dv, 'synopsis').groupBy(p => dv.date(p.date))) { // Use dv.date in case date is a link
-      dv.header(3, group.key.toFormat('yyyy-MM-dd, ccc'))
+    // Use dv.date in case date is a link
+    const groups = this._linked(dv, 'synopsis').groupBy(p => dv.date(p.date))
 
-      dv.list(
-        group.rows.sort(k => k.time, 'asc').map(
-          function(k) {
-            let para
+    if (groups.length == 0) {
+      dv.paragraph('No logs')
+    } else {
+      for (let group of groups) {
+        dv.header(3, group.key.toFormat('yyyy-MM-dd, ccc'))
 
-            if (k.context) {
-              para = k.context + ': ' + k.synopsis
-            } else {
-              para = k.synopsis
+        dv.list(
+          group.rows.sort(k => k.time, 'asc').map(
+            function(k) {
+              let para
+
+              if (k.context) {
+                para = k.context + ': ' + k.synopsis
+              } else {
+                para = k.synopsis
+              }
+
+              return thisClass._withLink(para, dv, k)
             }
-
-            return thisClass._withLink(para, dv, k)
-          }
+          )
         )
-      )
+      }
     }
   }
 
