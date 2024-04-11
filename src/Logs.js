@@ -4,9 +4,16 @@ class Logs {
   // Headline grouped under context
   // Replaces summary() from 2024-04-09
   headlines(dv) {
-    for (let group of this._linked(dv, 'headline').groupBy(p => p.Context)) {
-      dv.header(3, group.key)
-      dv.list(group.rows.sort(k => k.time, 'asc').map(k => this._withLink(k.headline, dv, k)))
+    const groups = this._linked(dv, 'headline')
+      .groupBy(p => p.Context)
+
+    if (groups.length == 0) {
+      dv.paragraph('No headlines')
+    } else {
+      for (let group of groups) {
+        dv.header(3, group.key)
+        dv.list(group.rows.sort(k => k.time, 'asc').map(k => this._withLink(k.headline, dv, k)))
+      }
     }
   }
 
@@ -52,7 +59,7 @@ class Logs {
                       .sort(l => l.display)
 
     if (links.length == 0) {
-      dv.paragraph('No mentions in logs')
+      dv.paragraph('No mentions in log')
     } else {
       dv.list(links)
     }
@@ -74,7 +81,14 @@ class Logs {
   // List of logs with time
   // Used by dailies
   synopsisWithTime(dv) {
-    dv.list(this._linked(dv, 'synopsis').map(page => this._withLinkAndTime(page.synopsis, dv, page)))
+    const logs = this._linked(dv, 'synopsis')
+      .map(page => this._withLinkAndTime(page.synopsis, dv, page))
+
+    if (logs.length == 0) {
+      dv.paragraph('No log')
+    } else {
+      dv.list(logs)
+    }
   }
   // end work-notes
 
