@@ -1,6 +1,4 @@
 class Logs {
-  // work-notes
-
   // Headline grouped under context
   // Replaces summary() from 2024-04-09
   headlines(dv) {
@@ -29,8 +27,10 @@ class Logs {
     }
   }
 
+  // HISTORY =========================================
   // List of logs with time grouped by date
-  history(dv) {
+  // Used in work Log section
+  historyAllWithTime(dv) {
     const grouped = this._linked(dv).groupBy(p => p.date)
 
     if (grouped.length == 0) {
@@ -45,6 +45,73 @@ class Logs {
       }
     }
   }
+
+  // Like historyAllWithTime but preceed with context (if present) instead of time
+  // Used in personal as history in non-log files
+  historyAllWithContext(dv) {
+    const thisClass = this
+
+    // Use dv.date in case date is a link
+    const groups = this._linked(dv, 'synopsis').groupBy(p => dv.date(p.date))
+
+    if (groups.length == 0) {
+      dv.paragraph('No logs')
+    } else {
+      for (let group of groups) {
+        dv.header(3, group.key.toFormat('yyyy-MM-dd, ccc'))
+
+        dv.list(
+          group.rows.sort(k => k.time, 'asc').map(
+            function(k) {
+              let para
+
+              if (k.context) {
+                para = k.context + ': ' + k.synopsis
+              } else {
+                para = k.synopsis
+              }
+
+              return thisClass._withLink(para, dv, k)
+            }
+          )
+        )
+      }
+    }
+  }
+
+  // List of logs with time
+  // Used in work by dailies
+  historyDayWithTime(dv) {
+    const logs = this._linked(dv, 'synopsis')
+      .map(page => this._withLinkAndTime(page.synopsis, dv, page))
+
+    if (logs.length == 0) {
+      dv.paragraph('No log')
+    } else {
+      dv.list(logs)
+    }
+  }
+
+  // Paragraphs of logs grouped by context if present
+  // Used in personal by dailies
+  historyDayByContext(dv) {
+    let para
+    const groups = this._groupRespectOrder(
+      this._linked(dv, 'synopsis'),
+      'context'
+    )
+
+    for (let group of groups) {
+      para = group.rows
+        .map(p => this._withLink(p.synopsis, dv, p))
+        .join(' ')
+
+      dv.paragraph(
+        group.key ? group.key + ': ' + para : para
+      )
+    }
+  }
+
 
   collectOutlinks(dv) {
     const links = this._linked(dv)
@@ -75,74 +142,6 @@ class Logs {
       dv.paragraph('No inbound mentions')
     } else {
       dv.list(inLinks)
-    }
-  }
-
-  // List of logs with time
-  // Used by dailies
-  synopsisWithTime(dv) {
-    const logs = this._linked(dv, 'synopsis')
-      .map(page => this._withLinkAndTime(page.synopsis, dv, page))
-
-    if (logs.length == 0) {
-      dv.paragraph('No log')
-    } else {
-      dv.list(logs)
-    }
-  }
-  // end work-notes
-
-  // personal
-  // Used by dailies
-  // Paragraphs of logs grouped by context if present
-  synopsis(dv) {
-    let para
-    const groups = this._groupRespectOrder(
-      this._linked(dv, 'synopsis'),
-      'context'
-    )
-
-    for (let group of groups) {
-      para = group.rows
-        .map(p => this._withLink(p.synopsis, dv, p))
-        .join(' ')
-
-      dv.paragraph(
-        group.key ? group.key + ': ' + para : para
-      )
-    }
-  }
-
-  // Like history but preceed with context (if present) instead of time
-  // Used as history in non-log files
-  synopsisByDate(dv) {
-    const thisClass = this
-
-    // Use dv.date in case date is a link
-    const groups = this._linked(dv, 'synopsis').groupBy(p => dv.date(p.date))
-
-    if (groups.length == 0) {
-      dv.paragraph('No logs')
-    } else {
-      for (let group of groups) {
-        dv.header(3, group.key.toFormat('yyyy-MM-dd, ccc'))
-
-        dv.list(
-          group.rows.sort(k => k.time, 'asc').map(
-            function(k) {
-              let para
-
-              if (k.context) {
-                para = k.context + ': ' + k.synopsis
-              } else {
-                para = k.synopsis
-              }
-
-              return thisClass._withLink(para, dv, k)
-            }
-          )
-        )
-      }
     }
   }
 
@@ -248,7 +247,6 @@ class Logs {
     const mermaidBlock = '```mermaid' + `\n${header} ${commands.map(c => c[0]).join("\n")}` + "\n```\n"
     dv.paragraph(mermaidBlock)
   }
-  // end personal
 
   // Helpers ==================================
 
